@@ -46,12 +46,12 @@ dict_comp = {
     "BG": 14,
 }
 
-# 0  1      5     8     3       0                                       0    0    0   3     5    8    1    0
 
 
-# ADD r1, r5, r8 | 0000 0000 0000 0011 0101 1000 0001 0000
-def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag):
-    var = (iv << 0) | dest << 8 | ope1 << 12 | ope2 << 16 | opcode << 20 | ivflag << 24 | 0 << 28 | 0 << 31
+
+                             #0    1    5     8     3       0                                                            0   0    3     5   8    1    0    0
+def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag):                                 # ADD r1, r5, r8 | 0000 0000 0011 0101 1000 0001 0000 0000
+    var = iv << 0 | dest << 8 | ope2 << 12 | ope1 << 16 | opcode << 20 | ivflag << 24 | 0 << 25 | 0 << 28
     var = struct.pack('>i', var)
     print("Instruction created! \n")
     print(var.hex())
@@ -59,35 +59,41 @@ def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag):
 
 
 def main(file):
-    with open(file, "r") as filebinary:
-        retrievedLines = file.readlines()
-    file.close()
-    with open("code_testadd", 'wb') as file:
-        for i in range(len(retrievedLines)):
-            retrievedLines[i] = retrievedLines[i].rstrip("\n")
-            parsedLines = retrievedLines[i].replace(",", "").split()
-            if parsedLines[0] in dict_opcodes:
-                opcode = parsedLines[0]
-                if opcode not in [5, 8]:
-                    print("Proceeding: \n")
-
-                    if parsedLines[3].isnumeric():
-                        instruction = createInstruction_opcode(parsedLines[3], dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], 0, dict_opcodes[parsedLines[0].upper()], 1)
-                    else:
-                        instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], dict_registers[parsedLines[3].lower()], dict_opcodes[parsedLines[0].upper()], 0)
-
-                    filebinary.write(instruction)
-
+    filename = open(file,"r")
+    retrievedLines = filename.readlines()
+    filename.close()
+    binarycode = open("binarycode","wb")
+    for i in range(len(retrievedLines)):
+        retrievedLines[i] = retrievedLines[i].rstrip("\n")
+        parsedLines = retrievedLines[i].replace(",", "").split()
+        if parsedLines[0] in dict_opcodes:
+            opcode = parsedLines[0]
+            if dict_opcodes[opcode] not in [5, 8]:
+                print("Proceeding: \n")
+                if parsedLines[3].isnumeric():
+                    instruction = createInstruction_opcode(int(parsedLines[3]), dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], 0, dict_opcodes[parsedLines[0].upper()], 1)
                 else:
-                    print("Not implemented yet !")
-                    return 0
+                    instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], dict_registers[parsedLines[3].lower()], dict_opcodes[parsedLines[0].upper()], 0)
 
-            elif parsedLines[0] in dict_comp:
-                opcode = parsedLines[0]
-
-            else:
-                print("ASM File not valid !")
+            elif dict_opcodes[opcode] == 5:
+                
                 return 0
+        #MOV r7, r9
+            elif dict_opcodes[opcode] == 8:
+                if parsedLines[2].isnumeric():
+                    instruction = createInstruction_opcode(int(parsedLines[2]), dict_registers[parsedLines[1].lower], 0, 0, dict_opcodes[parsedLines[0].upper()], 1)
+                else:
+                    instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], 0, dict_opcodes[parsedLines[0].upper()], 0)
+
+        elif parsedLines[0] in dict_comp:
+            opcode = parsedLines[0]
+
+
+        else:
+            print("ASM File not valid !")
+            return 0
+
+        binarycode.write(instruction)
 
 
 main(sys.argv[1])
