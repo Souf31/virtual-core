@@ -14,8 +14,6 @@ Le compilateur prends en entrée un fichier d'instruction assembleur like, et do
 
 ADD r1, r5, r8
 
-0000 0000 0000 0011 0101 1000 0001 0000
-
 0000 0000 0011 0101 1000 0001 0000 0000
 
 CMP r8, 18

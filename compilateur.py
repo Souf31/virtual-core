@@ -62,7 +62,7 @@ def main(file):
     filename = open(file,"r")
     retrievedLines = filename.readlines()
     filename.close()
-    binarycode = open("binarycode","wb")
+    binarycode = open("binarycode.bin","wb")
     for i in range(len(retrievedLines)):
         retrievedLines[i] = retrievedLines[i].rstrip("\n")
         parsedLines = retrievedLines[i].replace(",", "").split()
