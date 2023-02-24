@@ -13,21 +13,7 @@ void decode() {
 }
 
 void translate() {
-    int bits[11];
-    bits[0]=0;
-    bits[1]=1;
-    bits[2]=1;
-    bits[3]=0;
-    
-    bits[4]=0;
-    bits[5]=0;
-    bits[6]=1;
-    bits[7]=0;
-
-    bits[8]=1;
-    bits[9]=1;
-    bits[10]=1;
-    bits[11]=1;
+    int bits[31];
 
     for (int i=0; i<11; i=i+4){
 
@@ -40,5 +26,5 @@ void translate() {
 }
 
 int main(){
-    return 0;
+    decode();
 }
