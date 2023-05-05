@@ -10,7 +10,7 @@ typedef struct instruction_t{
     uint32_t op2;
     uint32_t iv_flag;
     uint32_t iv;
-    unsigned char *instructions
+    int num_instr;
 } instruction_t;
 
 typedef struct core_t {
@@ -20,7 +20,11 @@ typedef struct core_t {
     uint32_t branch_flag[6];
 } core_t;
 
-void fetch(core_t *core, instruction_t **instr_array, int *instr_count) {
+uint32_t little_to_big_endian(uint32_t x) {
+    return ((x >> 24) & 0xff) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | ((x << 24) & 0xff000000);
+}
+
+void fetch(core_t *core, instruction_t **instr_array) {
     // Open the binary file containing the instructions
     FILE *bin_file = fopen("binarycode.bin", "rb");
 
@@ -43,96 +47,45 @@ void fetch(core_t *core, instruction_t **instr_array, int *instr_count) {
     uint32_t code;
     int i = 0;
     while (fread(&code, sizeof(code), 1, bin_file) == 1) {
+
+        //Little to Big endian code
+        uint32_t big_code = little_to_big_endian(code);
+
         // Set the raw instruction
-        instructions[i].raw_instr = code;
+        instructions[i].raw_instr = big_code;
+
+        instructions[i].num_instr = num_instructions;
 
         // Decode the instruction
         //decode(&instructions[i]);
-        printf("Instruction number : %d\n", i);
+        printf("Instruction number : %d | Instruction : 0x%08x\n", i, big_code); // use %x to print in hex
 
         // Increment the instruction count
         i++;
     }
 
     // Set the instruction count and array pointer
-    *instr_count = num_instructions;
     *instr_array = instructions;
+
+    
 
     // Close the binary file
     fclose(bin_file);
 }
 
+void decode(core_t *core, instruction_t *instr_array){
+    for (int i = 0; i < instr_array[0].num_instr; i++) {
 
-void execute(int opcode, int iv, int dest, int ope1, int ope2, int ivflag, unsigned long* registers){
-    
-}
+        uint32_t instr = instr_array[i].raw_instr;
+        instr_array[i].iv_flag = (instr >> 24) & 0x1;
+        instr_array[i].opcode = (instr >> 20) & 0xF;
+        instr_array[i].op1 = (instr >> 16) & 0xF;
+        instr_array[i].op2 = (instr >> 12) & 0xF;
+        instr_array[i].dest = (instr >> 8) & 0xF;
+        instr_array[i].iv = instr & 0xFF;
 
+        printf("%d\n", instr_array[i].opcode);
 
-
-
-void decode(unsigned char* bytes, int bytesLength, unsigned long* registers){
-    int bits[32];
-    for (int i=0; i<bytesLength; i=i+4){
-    unsigned char a=bytes[i], b=bytes[i+1], c=bytes[i+2], d=bytes[i+3];
-    unsigned long combined = (a << 24) | (b << 16) | (c << 8) | d;
-    for (int i=31; i>=0; i--){
-    bits[i]=(combined & (1 << i)) ? 1:0;
-    }
-
-    //--------------------Decode
-
-    int iv, dest, ope1, ope2, opcode, ivflag;
-
-    dest= (bits[11]<<3) | (bits[10]<<2) | (bits[9]<<1) | (bits[8]);
-
-    ope1 = (bits[19]<<3) | (bits[18]<<2) | (bits[17]<<1) | (bits[16]);
-
-    ivflag=0;
-
-    if (bits[24]==1){
-        ivflag=1;
-        iv= (bits[7]<<7) | (bits[6]<<6) | (bits[5]<<5) | (bits[4]<<4) | (bits[3]<<3) | (bits[2]<<2) | (bits[1]<<1) | (bits[0]);
-    }
-    
-
-    else{
-        ope2 = (bits[15]<<3) | (bits[14]<<2) | (bits[13]<<1) | (bits[12]);
-    }
-
-    opcode = (bits[23]<<3) | (bits[22]<<2) | (bits[21]<<1) | (bits[20]);
-
-    //------------------------------ Execute
-
-
-    if (opcode==0){ // AND
-        if (ivflag==0){
-            registers[dest]=registers[ope1] & registers[ope2];
-        }
-        else{
-            registers[dest]=registers[ope1] & iv;
-        }
-    }
-
-    if (opcode==3){     // ADD
-        if (ivflag==0){
-        registers[dest]=registers[ope1] + registers[ope2];
-        }
-        else {
-            registers[dest]=registers[ope1] + iv;
-        }
-    }
-
-    if (opcode==6){     // SUB
-        if (ivflag==0){
-            registers[dest]=registers[ope1]-registers[ope2];
-        }
-        else{
-            registers[dest]=registers[ope1]-iv;
-        }
-    }
-
-    
-    
     }
 }
 
@@ -162,7 +115,13 @@ int main()
     struct instruction_t *instructions;
     struct core_t core;
 
-    fetch(&core, &instructions, instruction_count);
+    fetch(&core, &instructions);
+
+    // printf("Instruction number 2 : 0x%08x; instruction count : %d\n", instructions[2].raw_instr, instructions[1].num_instr);
+
+    decode(&core, instructions);
+
+    // printf("Instruction number 3 opcode : %d\n", instructions[3].opcode);
 
     return 0;
 }
