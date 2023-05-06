@@ -52,7 +52,24 @@ dict_comp = {
                              #0    1    5     8     3       0                                                            0   0    3     5   8    1    0    0
 def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag):                                 # ADD r1, r5, r8 | 0000 0000 0011 0101 1000 0001 0000 0000
     var = iv << 0 | dest << 8 | ope2 << 12 | ope1 << 16 | opcode << 20 | ivflag << 24 | 0 << 25 | 0 << 28
-    var = struct.pack('>i', var)
+    var = struct.pack('>I', var)
+    print("Instruction created! " + var.hex())
+    return var
+
+def createInstruction_branch(bcc, offset):                                 # BEQ 2 | 0000 0000 0011 0101 1000 0001 0000 0000 
+    if offset < 0:
+        flag = 1
+        offset = abs(offset)
+
+    elif offset > 0:
+        flag = 0
+        offset = abs(offset)
+
+    if offset > 134217727:
+        return("Offset too big")
+    
+    var = offset << 0 | flag << 27 | bcc << 28
+    var = struct.pack('>I', var)
     print("Instruction created! " + var.hex())
     return var
 
@@ -74,7 +91,7 @@ def main(file):
                     instruction = createInstruction_opcode(int(parsedLines[3]), dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], 0, dict_opcodes[parsedLines[0].upper()], 1)
                 else:
                     instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], dict_registers[parsedLines[3].lower()], dict_opcodes[parsedLines[0].upper()], 0)
-
+            #CMP
             elif dict_opcodes[opcode] == 5:
                 if parsedLines[2].isnumeric():
                     instruction = createInstruction_opcode(int(parsedLines[2]), 0, dict_registers[parsedLines[1].lower()], 0, dict_opcodes[parsedLines[0].upper()], 1)
@@ -86,12 +103,11 @@ def main(file):
                 if parsedLines[2].isnumeric():
                     instruction = createInstruction_opcode(int(parsedLines[2]), dict_registers[parsedLines[1].lower], 0, 0, dict_opcodes[parsedLines[0].upper()], 1)
                 else:
-                    instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], dict_registers[parsedLines[2].lower()], 0, dict_opcodes[parsedLines[0].upper()], 0)
+                    instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], 0, dict_registers[parsedLines[2].lower()], dict_opcodes[parsedLines[0].upper()], 0)
 
         elif parsedLines[0] in dict_comp:
-            opcode = parsedLines[0]
-
-
+            bcc = parsedLines[0]
+            instruction = createInstruction_branch(dict_comp[bcc], int(parsedLines[1]))
         else:
             print("ASM File not valid !")
             return 0
