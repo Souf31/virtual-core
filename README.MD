@@ -12,18 +12,16 @@ Le coeur doit être dans un langage compilé, donc j'ai décidé de le faire en 
 
 Le compilateur prends en entrée un fichier d'instruction assembleur like, et doit pouvoir décoder ces instructions, et créer un fichier binaire de ces instructions. Le compilateur sera en python.
 
-ADD r1, r5, r8
+### Fonctionnement du coeur
 
-0000 0000 0011 0101 1000 0001 0000 0000
+#### Fetch
 
-CMP r8, 18
+La fonction fetch() permet de récupérer les instructions stockées dans le fichier binaire.
 
-0000 0001 0101 1000 0000 0000 0001 0010
+#### Decode
 
-SUB r1, r5, 4
+La fonction decode() s'ocucupe de remplir chaque champ de la structure instruction en analysant les 32 bits.
 
-0000 0001 0110 0101 0000 0001 0000 0100
+#### Execute
 
-MOV r7, r9
-
-0000 0000 1000 1001 0000 0111 0000 0000
+La fonction execute() quant à elle effectue les instructions sur les registres avec les informations récupérées au préalable.
