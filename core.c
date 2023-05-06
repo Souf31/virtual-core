@@ -27,24 +27,6 @@ uint32_t little_to_big_endian(uint32_t x) {
     return ((x >> 24) & 0xff) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | ((x << 24) & 0xff000000);
 }
 
-void check_branch(core_t *core, instruction_t instr){
-
-    
-
-    // switch (instr.bcc) {
-    //         case 9: // Branch BEQ
-    //             if () {
-    //                 core->registers[instr.dest] = core->registers[instr.op1] & instr.iv;
-    //             } else {
-    //                 core->registers[instr.dest] = core->registers[instr.op1] & core->registers[instr.op2];
-    //             }
-    //             break;
-    //         default:
-    //             // Handle invalid opcode
-    //             break;
-    // }
-}
-
 void initialize_registers(core_t *core, const char *filename) {
     FILE *fp;
     char line[32];
