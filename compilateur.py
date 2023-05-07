@@ -76,9 +76,10 @@ def createInstruction_branch(bcc, offset):                                 # BEQ
 
 def main(file):
     filename = open(file,"r")
+    binname = file[:-2] + ".bin"
     retrievedLines = filename.readlines()
     filename.close()
-    binarycode = open("binarycode.bin","wb")
+    binarycode = open(binname,"wb")
     for i in range(len(retrievedLines)):
         retrievedLines[i] = retrievedLines[i].rstrip("\n")
         parsedLines = retrievedLines[i].replace(",", "").split()
@@ -101,7 +102,7 @@ def main(file):
         #MOV r7, r9
             elif dict_opcodes[opcode] == 8:
                 if parsedLines[2].isnumeric():
-                    instruction = createInstruction_opcode(int(parsedLines[2]), dict_registers[parsedLines[1].lower], 0, 0, dict_opcodes[parsedLines[0].upper()], 1)
+                    instruction = createInstruction_opcode(int(parsedLines[2]), dict_registers[parsedLines[1].lower()], 0, 0, dict_opcodes[parsedLines[0].upper()], 1)
                 else:
                     instruction = createInstruction_opcode(0, dict_registers[parsedLines[1].lower()], 0, dict_registers[parsedLines[2].lower()], dict_opcodes[parsedLines[0].upper()], 0)
 

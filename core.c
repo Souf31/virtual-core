@@ -65,10 +65,10 @@ void initialize_registers(core_t *core, const char *filename)
     fclose(fp);
 }
 
-void fetch(core_t *core, instruction_t **instr_array)
+void fetch(core_t *core, instruction_t **instr_array, const char *filename)
 {
     // Open the binary file containing the instructions
-    FILE *bin_file = fopen("binarycode.bin", "rb");
+    FILE *bin_file = fopen(filename, "rb");
 
     // Check if the file was opened successfully
     if (!bin_file)
@@ -201,7 +201,7 @@ void execute(core_t *core, instruction_t *instr_array)
             // TO-DO : Check next instruction if branch; check branch tag; change i with offset
 
             instruction_t next_instr = instr_array[core->pc + 1];
-            printf("Offset : %d, bool: %d, bcc : %d\n\n", next_instr.offset, next_instr.flag_offset, next_instr.bcc);
+            //printf("Offset : %d, bool: %d, bcc : %d\n\n", next_instr.offset, next_instr.flag_offset, next_instr.bcc);
 
             switch (next_instr.bcc)
             {
@@ -372,33 +372,32 @@ void execute(core_t *core, instruction_t *instr_array)
     }
 }
 
-int main()
-{
+int main(int argc, char *argv[]){
 
-    // for (int r=0; r<16; r++){
-    //     registers[r]=0;
-    //     if (r==5){registers[r]=5;}
-    //     if (r==8){registers[r]=7;}
-    //     if (r==13){registers[r]=25;}
-    // }
+    // unsigned long long int maxvalue;
 
-    // Use the data as needed
-    // for (i = 0; i < size; i++) {
-    //     printf("Data[%d] = ", i);
-    //     printf("%d", data[i]);
-    //     printf("\n");
-    // }
+    // maxvalue = 18446744073709551615;
 
-    // decode(data, size, registers);
+    // printf("\nTest : %llu\n", maxvalue);
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    char *binfile = argv[1];
+    char *statefile = argv[2];
+
+    // printf("Bin: %s, state: %s\n\n", binfile, statefile);
 
     int *instruction_count;
 
     struct instruction_t *instructions;
     struct core_t core;
 
-    initialize_registers(&core, "init_state");
+    initialize_registers(&core, statefile);
 
-    fetch(&core, &instructions);
+    fetch(&core, &instructions, binfile);
 
     // printf("Instruction number 2 : 0x%08x; instruction count : %d\n", instructions[2].raw_instr, instructions[1].num_instr);
 
@@ -410,7 +409,7 @@ int main()
 
     for (int i = 0; i < 16; i++)
     {
-        printf("r[%d] = %d\n", i, core.registers[i]);
+        printf("r[%llu] = %llu\n", i, core.registers[i]);
     }
 
     return 0;

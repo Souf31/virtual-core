@@ -25,3 +25,5 @@ La fonction decode() s'ocucupe de remplir chaque champ de la structure instructi
 #### Execute
 
 La fonction execute() quant à elle effectue les instructions sur les registres avec les informations récupérées au préalable.
+
+;81985529216486895
