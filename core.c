@@ -45,9 +45,9 @@ void initialize_registers(core_t *core, const char *filename)
     while (fgets(line, sizeof(line), fp))
     {
         int reg_num;
-        uint32_t value;
+        uint64_t value;
 
-        if (sscanf(line, "R%d=0x%x", &reg_num, &value) != 2)
+        if (sscanf(line, "R%d=0x%llx", &reg_num, &value) != 2)
         {
             fprintf(stderr, "Error: invalid line format in file %s\n", filename);
             continue;
@@ -58,7 +58,6 @@ void initialize_registers(core_t *core, const char *filename)
             fprintf(stderr, "Error: invalid register number %d in file %s\n", reg_num, filename);
             continue;
         }
-
         core->registers[reg_num] = value;
     }
 
@@ -374,11 +373,11 @@ void execute(core_t *core, instruction_t *instr_array)
 
 int main(int argc, char *argv[]){
 
-    // unsigned long long int maxvalue;
+    // uint64_t maxvalue;
 
     // maxvalue = 18446744073709551615;
 
-    // printf("\nTest : %llu\n", maxvalue);
+    //  printf("\nTest : %llu\n", maxvalue);
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
@@ -409,7 +408,7 @@ int main(int argc, char *argv[]){
 
     for (int i = 0; i < 16; i++)
     {
-        printf("r[%llu] = %llu\n", i, core.registers[i]);
+        printf("r[%d] = %llu\n", i, core.registers[i]);
     }
 
     return 0;

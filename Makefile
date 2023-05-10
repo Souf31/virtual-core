@@ -1,6 +1,6 @@
 init:
-	python3 compilateur.py init_test.s
+	python3 compilateur.py lshift64_128_test.s
 
 run: init
 	gcc core.c
-	./a.out init_test.bin init_state
+	./a.out lshift64_128_test.bin lshift64_128_state

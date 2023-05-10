@@ -110,6 +110,7 @@ def main(file):
             bcc = parsedLines[0]
             instruction = createInstruction_branch(dict_comp[bcc], int(parsedLines[1]))
         else:
+            print(parsedLines)
             print("ASM File not valid !")
             return 0
 
