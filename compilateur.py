@@ -9,7 +9,7 @@ dict_opcodes = {
     "ADD": 3,
     "ADC": 4,
     "CMP": 5,
-    "SUB": 6,
+    "SUB": 6,       #Dictionnaires d'opcodes / registres / branch codes
     "SBC": 7,
     "MOV": 8,
     "LSH": 9,
@@ -49,14 +49,13 @@ dict_comp = {
 
 
 
-                             #0    1    5     8     3       0                                                            0   0    3     5   8    1    0    0
-def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag):                                 # ADD r1, r5, r8 | 0000 0000 0011 0101 1000 0001 0000 0000
+def createInstruction_opcode(iv, dest, ope1, ope2, opcode, ivflag): # Fonction qui déplace avec des bitwise operators les bonnes valeurs puis pack en binaire en unsigned big endian.                      
     var = iv << 0 | dest << 8 | ope2 << 12 | ope1 << 16 | opcode << 20 | ivflag << 24 | 0 << 25 | 0 << 28
-    var = struct.pack('>I', var)
+    var = struct.pack('>I', var)                            
     print("Instruction created! " + var.hex())
     return var
 
-def createInstruction_branch(bcc, offset):                                 # BEQ 2 | 0000 0000 0011 0101 1000 0001 0000 0000 
+def createInstruction_branch(bcc, offset): # De même pour les branch codes
     if offset < 0:
         flag = 1
         offset = abs(offset)
@@ -77,7 +76,7 @@ def createInstruction_branch(bcc, offset):                                 # BEQ
 def main(file):
     filename = open(file,"r")
     binname = file[:-2] + ".bin"
-    retrievedLines = filename.readlines()
+    retrievedLines = filename.readlines()       # lis les instructions 
     filename.close()
     binarycode = open(binname,"wb")
     for i in range(len(retrievedLines)):
@@ -85,7 +84,7 @@ def main(file):
         parsedLines = retrievedLines[i].replace(",", "").split()
         if parsedLines[0] in dict_opcodes:
             opcode = parsedLines[0]
-            if dict_opcodes[opcode] not in [5, 8]:
+            if dict_opcodes[opcode] not in [5, 8]: # si l'opcodes n'est pas MOV ou CMP : 
                 if parsedLines[3].isnumeric():
 
                     #                                           IV                        DEST                                          op1                     op2            opcode                    IVflag

@@ -10,7 +10,7 @@ typedef struct instruction_t
     int op1;
     int op2;
     int iv_flag;
-    int iv;
+    int iv;                                     
     int num_instr;
     int bcc;
     int offset;
@@ -20,17 +20,16 @@ typedef struct instruction_t
 typedef struct core_t
 {
     int pc;
-    uint64_t registers[16];
-    int carry_flag;
-    int branch_flag[6];
+    uint64_t registers[16];     
+    int carry_flag;             //Structure d'un coeur
 } core_t;
 
-uint32_t little_to_big_endian(uint32_t x)
+uint32_t little_to_big_endian(uint32_t x) //Transforme une instruction little en big endian
 {
     return ((x >> 24) & 0xff) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | ((x << 24) & 0xff000000);
 }
 
-void initialize_registers(core_t *core, const char *filename)
+void initialize_registers(core_t *core, const char *filename)   //Lis les fichiers de state et initialise les registres dans le coeur
 {
     FILE *fp;
     char line[32];
@@ -64,7 +63,7 @@ void initialize_registers(core_t *core, const char *filename)
     fclose(fp);
 }
 
-void fetch(core_t *core, instruction_t **instr_array, const char *filename)
+void fetch(core_t *core, instruction_t **instr_array, const char *filename) //Récupère les raw_instructions dans le fichier binaire et les enregistres dans un tableau d'instruction
 {
     // Open the binary file containing the instructions
     FILE *bin_file = fopen(filename, "rb");
@@ -116,7 +115,7 @@ void fetch(core_t *core, instruction_t **instr_array, const char *filename)
     fclose(bin_file);
 }
 
-void decode(core_t *core, instruction_t *instr_array)
+void decode(core_t *core, instruction_t *instr_array) //Decode les raw_instructions en ramplissant les champs de la structure d'instruction
 {
     for (int i = 0; i < instr_array[0].num_instr; i++)
     {
@@ -133,12 +132,11 @@ void decode(core_t *core, instruction_t *instr_array)
     }
 }
 
-void execute(core_t *core, instruction_t *instr_array)
+void execute(core_t *core, instruction_t *instr_array) // Execute sur les registres du coeur en fonction de l'opcode
 {
 
     // Set the PC to zero
     core->pc = 0;
-    // printf("PC : %d\n\n", core->pc);
 
     for (core->pc; core->pc < instr_array[0].num_instr; core->pc++)
     {
@@ -175,36 +173,41 @@ void execute(core_t *core, instruction_t *instr_array)
                 core->registers[instr.dest] = core->registers[instr.op1] ^ core->registers[instr.op2];
             }
             break;
-        case 3: // Addition
+        case 3: // ADD
             if (instr.iv_flag)
             {
-                core->registers[instr.dest] = core->registers[instr.op1] + instr.iv;
+                uint64_t result = core->registers[instr.op1] + instr.iv;
+                core->carry_flag = (result < instr.iv) || (result < core->registers[instr.op1]);
+                core->registers[instr.dest] = result;
             }
             else
             {
-                core->registers[instr.dest] = core->registers[instr.op1] + core->registers[instr.op2];
+                uint64_t result = core->registers[instr.op1] + core->registers[instr.op2];
+                core->carry_flag = (result < core->registers[instr.op1]) || (result < core->registers[instr.op2]);
+                core->registers[instr.dest] = result;
             }
             break;
         case 4: // Addition with carry
             if (instr.iv_flag)
             {
-                core->registers[instr.dest] = core->registers[instr.op1] + instr.iv + core->carry_flag;
+                uint64_t result = core->registers[instr.op1] + instr.iv + core->carry_flag;
+                core->carry_flag = (result < instr.iv) || (result < core->registers[instr.op1]) || (result < core->carry_flag);
+                core->registers[instr.dest] = result;
             }
             else
             {
-                core->registers[instr.dest] = core->registers[instr.op1] + core->registers[instr.op2] + core->carry_flag;
+                uint64_t result = core->registers[instr.op1] + core->registers[instr.op2] + core->carry_flag;
+                core->carry_flag = (result < core->registers[instr.op1]) || (result < core->registers[instr.op2]) || (result < core->carry_flag);
+                core->registers[instr.dest] = result;
             }
             break;
         case 5: // Comparison
-            // do something for CMP
-            // TO-DO : Check next instruction if branch; check branch tag; change i with offset
 
             instruction_t next_instr = instr_array[core->pc + 1];
-            //printf("Offset : %d, bool: %d, bcc : %d\n\n", next_instr.offset, next_instr.flag_offset, next_instr.bcc);
 
             switch (next_instr.bcc)
             {
-            case 8: // Unconditional branch B
+            case 8: // Unconditional branch B //Pour chaque branch, modifie le pc avec la valeur de l'offset
                 if (next_instr.flag_offset == 0)
                 {
                     core->pc = core->pc + next_instr.offset;
@@ -371,44 +374,34 @@ void execute(core_t *core, instruction_t *instr_array)
     }
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
 
-    // uint64_t maxvalue;
-
-    // maxvalue = 18446744073709551615;
-
-    //  printf("\nTest : %llu\n", maxvalue);
-
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+    if (argc < 2)
+    {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]); //Verifie le nombre d'arguments
         return 1;
     }
 
-    char *binfile = argv[1];
-    char *statefile = argv[2];
+    char *binfile = argv[1]; //Nom du fichier state
+    char *statefile = argv[2]; //Nom du fichier binaire
 
-    // printf("Bin: %s, state: %s\n\n", binfile, statefile);
+    int *instruction_count; //Nombre d'instructions total
 
-    int *instruction_count;
+    struct instruction_t *instructions; //Instance d'un tableau d'instructions
+    struct core_t core; //Instance de coeur
 
-    struct instruction_t *instructions;
-    struct core_t core;
+    initialize_registers(&core, statefile); //Initialise les registres
 
-    initialize_registers(&core, statefile);
+    fetch(&core, &instructions, binfile); //Fetch dans le fichier binaire
 
-    fetch(&core, &instructions, binfile);
+    decode(&core, instructions); //Decode l'instruction
 
-    // printf("Instruction number 2 : 0x%08x; instruction count : %d\n", instructions[2].raw_instr, instructions[1].num_instr);
-
-    decode(&core, instructions);
-
-    // printf("Instruction number 3 opcode : %d\n", instructions[3].opcode);
-
-    execute(&core, instructions);
+    execute(&core, instructions); //Execute l'instruction
 
     for (int i = 0; i < 16; i++)
     {
-        printf("r[%d] = %llu\n", i, core.registers[i]);
+        printf("r[%d] = %llx\n", i, core.registers[i]); //Affiche les valeurs finales des registres en hex
     }
 
     return 0;
